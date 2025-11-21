@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockViewer - Dettagli</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Variabile che conterrà i dati completi dell'azione passati dal server
+    const initialStockData = [[${azioneDettagli}]];
+    // Variabile per eventuali messaggi di errore
+    const initialErrorMessage = [[${errorMessage}]];
+    /*]]>*/
+</script>
+
+
+<body class="min-h-screen flex flex-col items-center p-4 pt-10">
+<div class="w-full max-w-5xl">
+
+    <div id="details-view" class="w-full">
+        <a href="/" id="back-button" class="flex items-center text-blue-600 hover:text-blue-800 font-semibold mb-6 transition duration-150">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            Torna alla Ricerca
+        </a>
+
+        <div id="results-area">
+            <div id="stock-details-card" class="card bg-white p-8 rounded-xl border border-gray-100 mb-8">
+            </div>
+
+            <div class="mt-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Andamento Storico del Prezzo</h3>
+
+                <div id="period-selector" class="flex flex-wrap gap-2 mb-4 p-2 bg-gray-100 rounded-xl justify-center">
+                </div>
+
+                <div class="card bg-white p-6 rounded-xl border border-gray-200">
+                    <canvas id="price-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<button
+        id="dark-mode-toggle"
+        class="bg-gray-800 text-yellow-300 hover:bg-gray-700 dark:bg-yellow-300 dark:text-gray-800 dark:hover:bg-yellow-400"
+        aria-label="Toggle Dark Mode"
+>
+    <svg id="sun-icon" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+    <svg id="moon-icon" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+    </svg>
+</button>
+
+<script th:src="@{/app.js}"></script>
+
+</body>
+</html>

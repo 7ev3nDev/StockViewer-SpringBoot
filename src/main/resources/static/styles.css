@@ -1,0 +1,96 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f4f8;
+}
+.card {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+.period-button.active {
+    background-color: #3b82f6;
+    color: white;
+    font-weight: 600;
+}
+.suggestion-item:hover {
+    background-color: #e5e7eb;
+    cursor: pointer;
+}
+#search-view-container {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+body.dark {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+body.dark .text-gray-800 { color: #e2e8f0; }
+body.dark .text-gray-900 { color: #ffffff; }
+body.dark .text-gray-700 { color: #cbd5e1; }
+body.dark .text-gray-500 { color: #94a3b8; }
+body.dark .text-gray-400 { color: #64748b; }
+
+body.dark .bg-white { background-color: #2d3748; }
+body.dark .border-gray-100 { border-color: #4a5568; }
+body.dark .border-gray-200 { border-color: #4a5568; }
+body.dark .border-gray-300 { border-color: #4a5568; }
+body.dark .bg-gray-100 { background-color: #242b38; }
+body.dark .bg-gray-200 { background-color: #4a5568; }
+body.dark .hover\:bg-gray-300:hover { background-color: #556073; }
+body.dark .hover\:bg-gray-50:hover { background-color: #242b38; }
+
+body.dark .text-blue-600 { color: #63b3ed; }
+
+body.dark input#search-input {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border-color: #4a5568;
+}
+body.dark input#search-input::placeholder {
+    color: #94a3b8;
+}
+
+body.dark .period-button { color: #cbd5e1; }
+body.dark .period-button.active {
+    background-color: #3b82f6;
+    color: white;
+}
+body.dark .period-button:not(.active) {
+    background-color: #4a5568;
+}
+body.dark .period-button:not(.active):hover {
+    background-color: #556073;
+}
+
+body.dark #suggestions-container {
+    background-color: #2d3748;
+    border-color: #4a5568;
+}
+body.dark .suggestion-item {
+    border-color: #4a5568;
+}
+body.dark .suggestion-item:hover {
+    background-color: #242b38;
+}
+
+#dark-mode-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    border-radius: 9999px;
+    padding: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+#dark-mode-toggle:hover {
+    transform: translateY(-2px);
+}

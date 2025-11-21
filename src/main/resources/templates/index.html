@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockViewer</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 pt-10">
+<div class="w-full max-w-5xl">
+    <div id="search-view" class="w-full">
+        <div id="search-view-container" class="max-w-xl mx-auto">
+            <header class="text-center mb-10">
+                <h1 class="text-6xl font-extrabold text-blue-600 tracking-tight mb-3">📈 StockViewer</h1>
+                <p class="text-xl text-gray-500">Trova i dati finanziari che ti interessano.</p>
+            </header>
+
+            <div class="w-full relative">
+                <input
+                        type="text"
+                        id="search-input"
+                        placeholder="Cerca nome azienda o ticker..."
+                        class="w-full p-4 border-2 border-gray-300 rounded-full text-lg shadow-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                        autocomplete="off"
+                >
+
+                <div id="suggestions-container" class="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl hidden">
+                </div>
+            </div>
+            <div id="message-area-search" class="mt-4 text-center hidden"></div>
+        </div>
+    </div>
+</div>
+
+<button
+        id="dark-mode-toggle"
+        class="bg-gray-800 text-yellow-300 hover:bg-gray-700 dark:bg-yellow-300 dark:text-gray-800 dark:hover:bg-yellow-400"
+        aria-label="Toggle Dark Mode"
+>
+    <svg id="sun-icon" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+    <svg id="moon-icon" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+    </svg>
+</button>
+
+<script th:src="@{/app.js}"></script>
+
+</body>
+</html>
