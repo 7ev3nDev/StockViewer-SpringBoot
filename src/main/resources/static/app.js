@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     /** Riferimenti al DOM e creazione variabili globali */
 
     //Raccogliamo gli elementi HTML in un oggetto per trovarli facilmente
@@ -18,48 +18,66 @@ document.addEventListener('DOMContentLoaded', () => {
     let priceChart = null;       //Istanza di Chart.js
     let searchDebounceTimer;     //Timer per ritardare la ricerca mentre si scrive
 
+    //Centralizziamo le costanti per i temi per evitare duplicati
+    const THEME_COLORS = {
+        light: { text: '#4b5563', grid: '#e5e7eb' }, // gray-600, gray-200
+        dark:  { text: '#cbd5e1', grid: '#374151' }  // gray-300, gray-700
+    };
 
     //Li creiamo qua per evitare ripetizioni e miglioriamo le performance
     //Formattazione valute
     const currencyFormatter = new Intl.NumberFormat('it-IT', { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
+        minimumFractionDigits: 2, maximumFractionDigits: 2 
     });
 
     //Formattazione percentuali
     const percentFormatter = new Intl.NumberFormat('it-IT', { 
-        style: 'percent', 
-        minimumFractionDigits: 2 
+        style: 'percent', minimumFractionDigits: 2 
     });
 
-    //Formattazione data
-    const timeFormatter = new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit' });
-    const dateFormatter = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' });
+    //Per asse X
+    const axisTimeFormatter = new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const axisDateFormatter = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' });
+
+    //Per Tooltip (data/data+ora)
+    const tooltipDateFormatter = new Intl.DateTimeFormat('it-IT', { 
+        day: 'numeric', month: 'long', year: 'numeric' 
+    });
+    const tooltipDateTimeFormatter = new Intl.DateTimeFormat('it-IT', { 
+        day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+    });
+
+    /** Funzioni helper */
+
+    const getCurrencySymbol = (currencyCode) => {
+        const symbols = { 'EUR': '€', 'USD': '$', 'GBP': '£' };
+        return symbols[currencyCode] || currencyCode;
+    };
+
+    const getCurrentThemeColors = () => {
+        return document.body.classList.contains('dark') ? THEME_COLORS.dark : THEME_COLORS.light;
+    };
 
     /** Gestione dark mode */
 
     //Attiva/disattiva dark mode aggiornando classi CSS e icone
     const setDarkMode = (isDark) => {
         document.body.classList.toggle('dark', isDark);
-    
+
         //Gestione icone sole/luna
         if (domElements.sunIcon) domElements.sunIcon.classList.toggle('hidden', isDark);
         if (domElements.moonIcon) domElements.moonIcon.classList.toggle('hidden', !isDark);
 
         //Aggiorna i colori del grafico (se esiste)
         if (priceChart) {
-            const newColor = isDark ? '#cbd5e1' : '#4b5563';
-            const newGridColor = isDark ? '#374151' : '#e5e7eb';
-            
-            //Aggiorniamo direttamente le opzioni delle scale
-            if (priceChart.options.scales.x) {
-                priceChart.options.scales.x.ticks.color = newColor;
-                priceChart.options.scales.x.grid.color = newGridColor;
-            }
-            if (priceChart.options.scales.y) {
-                priceChart.options.scales.y.ticks.color = newColor;
-                priceChart.options.scales.y.grid.color = newGridColor;
-            }
+            const colors = isDark ? THEME_COLORS.dark : THEME_COLORS.light;
+            ['x', 'y'].forEach(axis => {
+                //Aggiorniamo direttamente le opzioni delle scale
+                if (priceChart.options.scales[axis]) {
+                    priceChart.options.scales[axis].ticks.color = colors.text;
+                    priceChart.options.scales[axis].grid.color = colors.grid;
+                }
+            });
             priceChart.update('none'); //Evitiamo l'animazione del ridisegno
         }
 
@@ -71,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeTheme = () => {
         const savedTheme = localStorage.getItem('theme');
         const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
+
         //Se c'è un tema salvato usalo, altrimenti usa preferenza sistema
         const shouldUseDark = savedTheme ? (savedTheme === 'dark') : systemPrefersDark;
         setDarkMode(shouldUseDark);
@@ -92,33 +110,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!domElements.chartCanvas) return;
 
         const ctx = domElements.chartCanvas.getContext('2d');
-        const isDark = document.body.classList.contains('dark');
-        
-        //Colori espliciti basati sul tema attuale
-        const textColor = isDark ? '#cbd5e1' : '#4b5563';
-        const gridColor = isDark ? '#374151' : '#e5e7eb';
-    
+        const colors = getCurrentThemeColors();
+        const currencySymbol = getCurrencySymbol(stockData.valuta);
+
         //Distruggiamo il grafico se esiste già
         if (priceChart) priceChart.destroy();
 
         //Controlliamo se ci sono dati da mostrare
         if (!stockData.chiusura || stockData.chiusura.length === 0) {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.fillStyle = colors.text;
+            ctx.textAlign = "center";
             ctx.fillText("Nessun dato disponibile", ctx.canvas.width / 2, ctx.canvas.height / 2);
             return;
         }
 
         //Formattazione asse X (Orario per 1g/5g, Data per periodi lunghi)
+        const isIntraday = (period === '1d' || period === '5d');
         const labels = stockData.date.map(dateString => {
             const date = new Date(dateString);
-            const isIntraday = (period === '1d' || period === '5d');
-        
-            //Utilizziamo i formattatori pronti invece di crearne di nuovi
-            return isIntraday ? timeFormatter.format(date) : dateFormatter.format(date);
-        });
 
-        //Selezione colore linea Verde/Rosso (stockData.positivo calcolato lato server)
-        const lineColor = stockData.positivo ? '#059669' : '#dc2626';
+            //Utilizziamo i formattatori pronti invece di crearne di nuovi
+            return isIntraday ? axisTimeFormatter.format(date) : axisDateFormatter.format(date);
+        });
 
         //Configurazione Chart.js
         priceChart = new Chart(ctx, {
@@ -126,9 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: stockData.valuta,
+                    label: 'Prezzo',
                     data: stockData.chiusura,
-                    borderColor: lineColor,
+                    borderColor: stockData.positivo ? '#059669' : '#dc2626', //Verde o Rosso
                     borderWidth: 2,
                     pointRadius: 0, //Nascondiamo i puntini per una linea pulita
                     tension: 0.1    //Leggera curvatura della linea
@@ -137,17 +151,36 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 plugins: { 
-                    legend: { display: false }, //Nascondiamo la legenda
-                    tooltip: { mode: 'index', intersect: false } 
+                    legend: { display: false },
+                    tooltip: { 
+                        mode: 'index', intersect: false,
+                        callbacks: {
+                            title: (tooltipItems) => {
+                                const index = tooltipItems[0].dataIndex;
+                                const date = new Date(stockData.date[index]);
+                                
+                                // Usiamo i due formatter separati che abbiamo già per evitare testi extra
+                                if (isIntraday) {
+                                    return `${tooltipDateFormatter.format(date)}, ${axisTimeFormatter.format(date)}`;
+                                }
+                                
+                                return tooltipDateFormatter.format(date);
+                            },
+                            label: (context) => {
+                                const val = context.parsed.y;
+                                return val !== null ? `Prezzo: ${val.toFixed(2)} ${currencySymbol}` : '';
+                            }
+                        }
+                    } 
                 },
                 scales: { 
                     x: { 
-                        ticks: { maxTicksLimit: 8, color: textColor },
-                        grid: { color: gridColor }
+                        ticks: { maxTicksLimit: 8, color: colors.text },
+                        grid: { color: colors.grid }
                     }, 
                     y: { 
-                        ticks: { callback: value => value.toFixed(2), color: textColor },
-                        grid: { color: gridColor }
+                        ticks: { callback: v => v.toFixed(2), color: colors.text },
+                        grid: { color: colors.grid }
                     } 
                 }
             }
@@ -159,27 +192,19 @@ document.addEventListener('DOMContentLoaded', () => {
     //Aggiornamento HTML della card con i dettagli dell'azione
     const renderStockDetails = (stockData) => {
         if (!domElements.detailsCard) return;
-    
-        //Determinazione classi e simboli per il colore (Verde/Rosso)
-        const colorClass = stockData.positivo ? 'text-green-600' : 'text-red-600';
-        const arrowSymbol = stockData.positivo ? '▲' : '▼';
 
-        //Preparazione testi formattati (calcoli fatti dal server)
-        const currentPrice = currencyFormatter.format(stockData.valore);
-        const changeAmount = currencyFormatter.format(Math.abs(stockData.variazione));
-        const changePercent = percentFormatter.format(stockData.variazionePercentuale);
-    
-        const changeText = `${arrowSymbol} ${changeAmount} (${changePercent})`;
+        const isPos = stockData.positivo;
+
+        //Determinazione classi e simboli per il colore (Verde/Rosso)
+        const colorClass = isPos ? 'text-green-600' : 'text-red-600';
+        const symbol = getCurrencySymbol(stockData.valuta);
 
         //Funzione helper per generare i blocchi delle statistiche
-        const createStatBlock = (label, value) => {
-            const displayValue = value ? currencyFormatter.format(value) : 'N/A';
-            return `
-                <div>
-                    <span class="text-sm font-medium text-gray-500 uppercase">${label}</span>
-                    <div class="text-xl font-semibold">${displayValue}</div>
-                </div>`;
-        };
+        const statHtml = (label, val) => `
+            <div>
+                <span class="text-sm font-medium text-gray-500 uppercase">${label}</span>
+                <div class="text-xl font-semibold">${val ? currencyFormatter.format(val) : 'N/A'} ${symbol}</div>
+            </div>`;
 
         //Injecting nell'HTML
         domElements.detailsCard.innerHTML = `
@@ -189,15 +214,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="text-gray-500 text-2xl">(${stockData.simbolo})</span>
                 </h3>
                 <div class="text-right">
-                    <p class="text-5xl font-extrabold ${colorClass}">${currentPrice} ${stockData.valuta}</p>
-                    <p class="text-xl font-bold ${colorClass}">${changeText}</p>
+                    <p class="text-5xl font-extrabold ${colorClass}">
+                        ${currencyFormatter.format(stockData.valore)} ${symbol}
+                    </p>
+                    <p class="text-xl font-bold ${colorClass}">
+                        ${isPos ? '▲' : '▼'} ${currencyFormatter.format(Math.abs(stockData.variazione))} (${percentFormatter.format(stockData.variazionePercentuale)})
+                    </p>
                 </div>
             </div>
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                ${createStatBlock('Max oggi', stockData.oggiAlto)}
-                ${createStatBlock('Min oggi', stockData.oggiBasso)}
-                ${createStatBlock('Max 52w', stockData.precedentiAlto)}
-                ${createStatBlock('Min 52w', stockData.precedentiBasso)}
+                ${statHtml('Max oggi', stockData.oggiAlto)}
+                ${statHtml('Min oggi', stockData.oggiBasso)}
+                ${statHtml('Max 52w', stockData.precedentiAlto)}
+                ${statHtml('Min 52w', stockData.precedentiBasso)}
             </div>`;
     };
 
@@ -205,17 +234,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadPeriodData = async (ticker, period) => {
         //Aggiungiamo classe CSS per l'effetto "caricamento" (trasparenza)
         domElements.detailsCard.classList.add('loading');
-    
         try {
-            const response = await fetch(`/search?ticker=${ticker}&range=${period}&dataType=json`);
-            if (!response.ok) throw new Error("Errore API");
-        
-            const data = await response.json();
-            renderChart(data, period); //Aggiorna solo il grafico
-        
-        } catch (error) {
-            console.error("Impossibile caricare il periodo:", error);
-            alert("Errore nel caricamento del grafico.");
+            const res = await fetch(`/search?ticker=${ticker}&range=${period}&dataType=json`);
+            if (!res.ok) throw new Error("Errore API");
+            renderChart(await res.json(), period); //Aggiorna solo il grafico
+        } catch (err) {
+            console.error(err);
+            alert("Errore caricamento grafico.");
         } finally {
             domElements.detailsCard.classList.remove('loading');
         }
@@ -224,27 +249,25 @@ document.addEventListener('DOMContentLoaded', () => {
     //Creazione bottoni per selezione periodo
     const initializePeriodButtons = (ticker, currentPeriod) => {
         if (!domElements.periodSelector) return;
-    
-        domElements.periodSelector.innerHTML = ''; //Pulizia bottoni precedenti
-        const availablePeriods = ["1d", "5d", "1mo", "6mo", "1y", "5y", "max"];
+        domElements.periodSelector.innerHTML = '';  //Pulizia bottoni precedenti
 
-        availablePeriods.forEach(periodCode => {
+        ["1d", "5d", "1mo", "6mo", "1y", "5y", "max"].forEach(p => {
             const btn = document.createElement('button');
             //Trasformiamo caratteri minuscoli in maiuscoli per l'etichetta
-            btn.textContent = periodCode.toUpperCase().replace('MO','M');
-        
-            //Gestione classi CSS (attivo/inattivo)
-            const isActive = (periodCode === currentPeriod);
-            btn.className = `period-button px-4 py-2 text-sm rounded-lg shadow ${isActive ? 'active' : ''}`;
+            btn.textContent = p.toUpperCase().replace('MO','M');
+            btn.className = `period-button px-4 py-2 text-sm rounded-lg shadow ${p === currentPeriod ? 'active' : ''}`;
             
-            btn.onclick = (e) => {
+            btn.onclick = async (e) => {
+                e.preventDefault();
+                const savedScrollPosition = window.scrollY;
+
                 //Rimozione 'active' dagli altri e inserimento all'attuale
                 document.querySelectorAll('.period-button').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
-            
-                loadPeriodData(ticker, periodCode);
+
+                await loadPeriodData(ticker, p);
+                window.scrollTo(0, savedScrollPosition);
             };
-        
             domElements.periodSelector.appendChild(btn);
         });
     };
@@ -255,29 +278,29 @@ document.addEventListener('DOMContentLoaded', () => {
         //Evento chiamato mentre l'utente scrive
         domElements.searchInput.addEventListener('input', (e) => {
             clearTimeout(searchDebounceTimer); //Reset timer precedente
-        
+
             const query = e.target.value.trim();
             if (query.length < 2) {
                 domElements.suggestionsBox.classList.add('hidden');
                 return;
             }
-        
+
             //Attende 300ms prima della chiamata al server (Debounce)
             searchDebounceTimer = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/suggest?query=${encodeURIComponent(query)}`);
-                    const data = await response.json();
+                    const res = await fetch(`/suggest?query=${encodeURIComponent(query)}`);
+                    const data = await res.json();
                     const quotes = (data.quotes || []).slice(0, 8); //Selezione massimo 8 risultati
-                
-                    if (quotes.length === 0) {
+            
+                    if (!quotes.length) {
                         domElements.suggestionsBox.classList.add('hidden');
                         return;
                     }
-                
+
                     //Generazione suggerimenti nell'HTML
                     domElements.suggestionsBox.innerHTML = quotes.map(item => `
                         <div class="suggestion-item p-3 border-b border-gray-100 cursor-pointer flex justify-between" 
-                                onclick="window.location.href='/search?ticker=${item.symbol}'">
+                             onclick="window.location.href='/search?ticker=${item.symbol}'">
                             <div>
                                 <span class="font-bold">${item.symbol}</span> 
                                 <span class="text-sm opacity-80">${item.shortname || item.longname || ''}</span>
@@ -285,11 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="text-xs opacity-60">${item.exchange}</span>
                         </div>
                     `).join('');
-                
                     domElements.suggestionsBox.classList.remove('hidden');
-                } catch (error) { 
-                    console.error("Errore ricerca:", error); 
-                }
+                } catch (e) { console.error(e); }
             }, 300);
         });
 
@@ -310,8 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
 
     /* Se Thymeleaf ha iniettato dati iniziali (siamo nella pagina Dettagli)
-        'initialStockData' è una variabile globale definita nel tag <script> dell'HTML */
-    if (typeof initialStockData !== 'undefined' && initialStockData && initialStockData.simbolo) {
+            'initialStockData' è una variabile globale definita nel tag <script> dell'HTML */
+    if (typeof initialStockData !== 'undefined' && initialStockData?.simbolo) {
         renderStockDetails(initialStockData);
         initializePeriodButtons(initialStockData.simbolo, '1d');
         renderChart(initialStockData, '1d');
