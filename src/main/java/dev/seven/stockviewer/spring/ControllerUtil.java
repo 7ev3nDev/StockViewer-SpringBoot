@@ -30,13 +30,13 @@ public class ControllerUtil {
      * Gestione pagina di ricerca e visualizzazione dei dettagli di un'azione.
      *
      * @param symbol Il ticker dell'azione (es. AAPL, NVDA).
-     * @param range L'intervallo temporale richiesto (es. 1d, 1mo, 1y). Default: 1 mese.
+     * @param range L'intervallo temporale richiesto (es. 1d, 1mo, 1y). Default: 1 giorno.
      * @param dataType Se vale "json", ritorna solo i dati grezzi (per aggiornare il grafico via JS),
      *                 altrimenti ritorna la pagina HTML completa.
      * @param model Il modello per passare dati alla vista Thymeleaf (HTML).
      */
     @GetMapping("/search")
-    public Object getSearch(@RequestParam("ticker") String symbol, @RequestParam(value = "range", defaultValue = "1mo") String range, @RequestParam(value = "dataType", required = false) String dataType, Model model) {
+    public Object getSearch(@RequestParam("ticker") String symbol, @RequestParam(value = "range", defaultValue = "1d") String range, @RequestParam(value = "dataType", required = false) String dataType, Model model) {
         Stock stock = null;
         String errorMessage = null;
 
