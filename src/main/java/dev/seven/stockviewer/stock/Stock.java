@@ -115,7 +115,7 @@ public class Stock {
         return oggiBasso;
     }
 
-    // --- Metodi calcolati per il Frontend (Ottimizzazione JS) ---
+    //Calcolo variazione
     public double getVariazione() {
         return valore - valoreIeri;
     }
@@ -127,7 +127,6 @@ public class Stock {
     public boolean isPositivo() {
         return getVariazione() >= 0;
     }
-    // -------------------------------------------------------------
 
     public void setDate(ArrayList<Date> date) {
         this.date = date;
@@ -195,26 +194,23 @@ public class Stock {
 
     @Override
     public String toString() {
-        //Calcolo cambio assoluto (rotto, ho bestemmiato molto per farlo funzionare ma nada)
-        double delta = valore - valoreIeri;
-        double deltaPercentuale = (valoreIeri != 0) ? (delta / valoreIeri) * 100 : 0.0;
-        String freccia = (delta >= 0) ? "▲" : "▼";
+        String freccia = (isPositivo()) ? "▲" : "▼";
 
-        return "\n--- Parsed Stock Object Summary ---" +
+        return "\n--- Riepilogo dell'oggetto Stock ---" +
                 "\nNome: " + nome +
                 "\nSimbolo: " + simbolo +
                 "\nValuta: " + valuta +
                 "\n" +
-                // Prezzo Corrente con Cambio
+                //Prezzo Corrente con Cambio
                 "\nValore Corrente: " + String.format("%.2f", valore) + " " + valuta +
-                "\nCambio Giornaliero: " + freccia + String.format(" %.2f (%.2f%%)", Math.abs(delta), deltaPercentuale) +
+                "\nCambio Giornaliero: " + freccia + String.format(" %.2f (%.2f%%)", Math.abs(getVariazione()), getVariazionePercentuale() * 100) +
                 "\nValore Ieri (Chiusura Precedente): " + String.format("%.2f", valoreIeri) +
                 "\n" +
-                // Dati Giornalieri e 52 Settimane
+                //Dati Giornalieri e 52 Settimane
                 "\nMax/Min Oggi: " + String.format("%.2f", oggiAlto) + " / " + String.format("%.2f", oggiBasso) +
                 "\nMax/Min 52 Settimane: " + String.format("%.2f", precedentiAlto) + " / " + String.format("%.2f", precedentiBasso) +
                 "\n" +
-                // Riepilogo Serie Storica
+                //Riepilogo Serie Storica
                 "\nSerie Temporale (Date):" +
                 "\n  Punti Dati Totali: " + date.size() +
                 "\n------------------------------------\n";
