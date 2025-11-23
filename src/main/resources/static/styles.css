@@ -1,22 +1,85 @@
+/* Definizione palette colori */
+:root {
+    /* Light Mode (Default) */
+    --bg-main: #f0f4f8;
+    --bg-card: #ffffff;
+    --bg-input: #ffffff;
+    --text-primary: #111827; /* gray-900 */
+    --text-secondary: #374151; /* gray-700 */
+    --text-muted: #6b7280;     /* gray-500 */
+    --border-color: #e5e7eb;   /* gray-200 */
+    --accent-color: #3b82f6;   /* blue-500 */
+    --hover-bg: #e5e7eb;
+}
+
+body.dark {
+    /* Dark Mode */
+    --bg-main: #1a202c;        /* gray-900 */
+    --bg-card: #2d3748;        /* gray-800 */
+    --bg-input: #2d3748;
+    --text-primary: #f7fafc;   /* gray-50 */
+    --text-secondary: #e2e8f0; /* gray-200 */
+    --text-muted: #94a3b8;     /* gray-400 */
+    --border-color: #4a5568;   /* gray-700 */
+    --accent-color: #63b3ed;   /* blue-300 */
+    --hover-bg: #242b38;
+}
+
+/* Stile base */
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #f0f4f8;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
 }
+
+/* Componenti */
+/* Card Generica */
 .card {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
+    background-color: var(--bg-card);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: var(--border-color); /* Se ha un bordo */
 }
-.text-green-600 { color: #059669; }
-.text-red-600 { color: #dc2626; }
-.period-button.active {
-    background-color: #3b82f6;
-    color: white;
-    font-weight: 600;
+
+/* Input di Ricerca */
+#search-input {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+#search-input::placeholder { color: var(--text-muted); }
+
+/* Suggerimenti */
+#suggestions-container {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+.suggestion-item {
+    border-bottom-color: var(--border-color);
 }
 .suggestion-item:hover {
-    background-color: #e5e7eb;
+    background-color: var(--hover-bg);
     cursor: pointer;
 }
+/* Testo specifico nei suggerimenti */
+.suggestion-item .text-gray-800 { color: var(--text-primary) !important; }
+.suggestion-item .text-gray-600 { color: var(--text-secondary) !important; }
+.suggestion-item .text-gray-400 { color: var(--text-muted) !important; }
+
+/* Bottoni Periodo */
+.period-button {
+    color: var(--text-secondary);
+    background-color: transparent;
+}
+.period-button:hover { background-color: var(--hover-bg); }
+
+.period-button.active {
+    background-color: var(--accent-color);
+    color: white !important; /* Il testo su accento è sempre bianco */
+    font-weight: 600;
+}
+
+/* Utilità */
 #search-view-container {
     min-height: 80vh;
     display: flex;
@@ -25,60 +88,18 @@ body {
     align-items: center;
 }
 
-body.dark {
-    background-color: #1a202c;
-    color: #e2e8f0;
+.loading {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
 }
 
-body.dark .text-gray-800 { color: #e2e8f0; }
-body.dark .text-gray-900 { color: #ffffff; }
-body.dark .text-gray-700 { color: #cbd5e1; }
-body.dark .text-gray-500 { color: #94a3b8; }
-body.dark .text-gray-400 { color: #64748b; }
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+/* Titolo principale */
+.text-blue-600 { color: var(--accent-color) !important; }
 
-body.dark .bg-white { background-color: #2d3748; }
-body.dark .border-gray-100 { border-color: #4a5568; }
-body.dark .border-gray-200 { border-color: #4a5568; }
-body.dark .border-gray-300 { border-color: #4a5568; }
-body.dark .bg-gray-100 { background-color: #242b38; }
-body.dark .bg-gray-200 { background-color: #4a5568; }
-body.dark .hover\:bg-gray-300:hover { background-color: #556073; }
-body.dark .hover\:bg-gray-50:hover { background-color: #242b38; }
-
-body.dark .text-blue-600 { color: #63b3ed; }
-
-body.dark input#search-input {
-    background-color: #2d3748;
-    color: #e2e8f0;
-    border-color: #4a5568;
-}
-body.dark input#search-input::placeholder {
-    color: #94a3b8;
-}
-
-body.dark .period-button { color: #cbd5e1; }
-body.dark .period-button.active {
-    background-color: #3b82f6;
-    color: white;
-}
-body.dark .period-button:not(.active) {
-    background-color: #4a5568;
-}
-body.dark .period-button:not(.active):hover {
-    background-color: #556073;
-}
-
-body.dark #suggestions-container {
-    background-color: #2d3748;
-    border-color: #4a5568;
-}
-body.dark .suggestion-item {
-    border-color: #4a5568;
-}
-body.dark .suggestion-item:hover {
-    background-color: #242b38;
-}
-
+/* Bottone Dark Mode (Fisso) */
 #dark-mode-toggle {
     position: fixed;
     bottom: 20px;
@@ -86,11 +107,16 @@ body.dark .suggestion-item:hover {
     z-index: 1000;
     border-radius: 9999px;
     padding: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
+    transition: transform 0.1s;
 }
+#dark-mode-toggle:hover { transform: translateY(-2px); }
 
-#dark-mode-toggle:hover {
-    transform: translateY(-2px);
-}
+/* Per i testi generici sparsi nell'HTML che usano classi tailwind */
+body.dark .text-gray-900 { color: var(--text-primary); }
+body.dark .text-gray-500 { color: var(--text-muted); }
+body.dark .border-gray-100, 
+body.dark .border-gray-200, 
+body.dark .border-gray-300 { border-color: var(--border-color); }
+body.dark .bg-gray-100 { background-color: var(--hover-bg); }

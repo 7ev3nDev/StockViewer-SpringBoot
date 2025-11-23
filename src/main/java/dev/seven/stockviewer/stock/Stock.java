@@ -115,6 +115,20 @@ public class Stock {
         return oggiBasso;
     }
 
+    // --- Metodi calcolati per il Frontend (Ottimizzazione JS) ---
+    public double getVariazione() {
+        return valore - valoreIeri;
+    }
+
+    public double getVariazionePercentuale() {
+        return (valoreIeri != 0) ? (getVariazione() / valoreIeri) : 0.0;
+    }
+
+    public boolean isPositivo() {
+        return getVariazione() >= 0;
+    }
+    // -------------------------------------------------------------
+
     public void setDate(ArrayList<Date> date) {
         this.date = date;
     }
