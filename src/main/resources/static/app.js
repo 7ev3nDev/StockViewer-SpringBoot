@@ -48,7 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         //Aggiorna i colori del grafico (se esiste)
         if (priceChart) {
-            Chart.defaults.color = isDark ? '#cbd5e1' : '#4b5563';
+            const newColor = isDark ? '#cbd5e1' : '#4b5563';
+            const newGridColor = isDark ? '#374151' : '#e5e7eb';
+            
+            //Aggiorniamo direttamente le opzioni delle scale
+            if (priceChart.options.scales.x) {
+                priceChart.options.scales.x.ticks.color = newColor;
+                priceChart.options.scales.x.grid.color = newGridColor;
+            }
+            if (priceChart.options.scales.y) {
+                priceChart.options.scales.y.ticks.color = newColor;
+                priceChart.options.scales.y.grid.color = newGridColor;
+            }
             priceChart.update('none'); //Evitiamo l'animazione del ridisegno
         }
 
@@ -81,6 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!domElements.chartCanvas) return;
 
         const ctx = domElements.chartCanvas.getContext('2d');
+        const isDark = document.body.classList.contains('dark');
+        
+        //Colori espliciti basati sul tema attuale
+        const textColor = isDark ? '#cbd5e1' : '#4b5563';
+        const gridColor = isDark ? '#374151' : '#e5e7eb';
     
         //Distruggiamo il grafico se esiste già
         if (priceChart) priceChart.destroy();
@@ -125,8 +141,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     tooltip: { mode: 'index', intersect: false } 
                 },
                 scales: { 
-                    x: { ticks: { maxTicksLimit: 8 } }, 
-                    y: { ticks: { callback: value => value.toFixed(2) } } 
+                    x: { 
+                        ticks: { maxTicksLimit: 8, color: textColor },
+                        grid: { color: gridColor }
+                    }, 
+                    y: { 
+                        ticks: { callback: value => value.toFixed(2), color: textColor },
+                        grid: { color: gridColor }
+                    } 
                 }
             }
         });
@@ -161,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         //Injecting nell'HTML
         domElements.detailsCard.innerHTML = `
-            <div class="flex flex-col sm:flex-row justify-between items-center border-b pb-4 mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center border-b border-gray-200 pb-4 mb-6">
                 <h3 class="text-4xl font-extrabold text-gray-900">
                     ${stockData.nome} 
                     <span class="text-gray-500 text-2xl">(${stockData.simbolo})</span>
@@ -254,13 +276,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                     //Generazione suggerimenti nell'HTML
                     domElements.suggestionsBox.innerHTML = quotes.map(item => `
-                        <div class="suggestion-item p-3 border-b border-gray-100 cursor-pointer flex justify-between hover:bg-gray-100" 
+                        <div class="suggestion-item p-3 border-b border-gray-100 cursor-pointer flex justify-between" 
                                 onclick="window.location.href='/search?ticker=${item.symbol}'">
                             <div>
-                                <span class="font-bold text-gray-800">${item.symbol}</span> 
-                                <span class="text-sm text-gray-600">${item.shortname || item.longname || ''}</span>
+                                <span class="font-bold">${item.symbol}</span> 
+                                <span class="text-sm opacity-80">${item.shortname || item.longname || ''}</span>
                             </div>
-                            <span class="text-xs text-gray-400">${item.exchange}</span>
+                            <span class="text-xs opacity-60">${item.exchange}</span>
                         </div>
                     `).join('');
                 
